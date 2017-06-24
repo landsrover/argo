@@ -1,8 +1,3 @@
-/* eslint-env mocha */
-/* global angular, assert */
-
-describe("components module", () => {
-    it("should be defined", () => {
-        assert(angular.isDefined(angular.module("components")));
-    });
-});
+import "./account/accounts.service.spec";
+import "./activity/activity.service.spec";
+import "./exposure/exposure.service.spec";

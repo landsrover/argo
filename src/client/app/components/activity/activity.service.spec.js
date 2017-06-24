@@ -1,8 +1,15 @@
-/* eslint-env mocha */
-/* global assert, expect, inject */
+import "mocha";
+import { assert, expect } from "chai";
 
-describe("activityService", () => {
-    const api = "/api/transactions";
+import { ActivityService } from "./activity.service";
+import { SessionService } from "../session/session.service";
+
+const { beforeEach, describe, it } = window;
+
+describe("ActivityService", () => {
+    const environment = "my environment";
+    const token = "my token";
+    const accountId = "my account id";
     const activity = {
         id: 176403879,
         accountId: 6765103,
@@ -21,42 +28,27 @@ describe("activityService", () => {
         }
     };
 
+    beforeEach(() => {
+        const apiTransactions = "/api/transactions";
 
-    let $httpBackend,
-        sessionService,
-        activityService;
+        /* eslint no-new:off */
+        new ActivityService([]);
 
-    beforeEach(module("components"));
-
-    beforeEach(inject($injector => {
-        const environment = "my environment",
-            token = "my token",
-            accountId = "my account id";
-
-        $httpBackend = $injector.get("$httpBackend");
-        activityService = $injector.get("ActivityService");
-        sessionService = $injector.get("SessionService");
-
-        sessionService.setCredentials({
+        SessionService.setCredentials({
             environment,
             token,
             accountId
         });
 
-        $httpBackend
-            .when("POST", api)
-            .respond([activity]);
-
-        $httpBackend.whenGET(/^app\/.*\.html$/).respond(200);
-    }));
-
-    afterEach(() => {
-        $httpBackend.verifyNoOutstandingExpectation();
-        $httpBackend.verifyNoOutstandingRequest();
+        fetch.mock(apiTransactions, [activity]);
     });
 
     it("getActivities", () => {
-        activityService.getActivities().then(activities => {
+        let activities;
+
+        ActivityService.refresh().then(() => {
+            activities = ActivityService.activities;
+
             assert.lengthOf(activities, 1);
 
             assert.equal("176403879", activities[0].id);
@@ -69,12 +61,11 @@ describe("activityService", () => {
             assert.equal("100000", activities[0].accountBalance);
             assert.equal("2014-04-07T18:31:05Z", activities[0].time);
         });
-        $httpBackend.flush();
     });
 
     it("addActivity", () => {
         expect(() => {
-            activityService.addActivity(activity);
+            ActivityService.addActivity(activity);
         }).to.not.throw(TypeError);
     });
 });
